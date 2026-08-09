@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-vazir: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-vazir: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  *, ::before, ::after {
+    font-family: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html, body {
+    font-family: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "ss01" 1, "ss02" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+body {
+  font-family: var(--font-vazir);
+}
+
+/* Explicit weight utility classes ensuring Vazirmatn renders weights 100 through 900 consistently */
+.font-vazir-thin { font-weight: 100; }
+.font-vazir-extralight { font-weight: 200; }
+.font-vazir-light { font-weight: 300; }
+.font-vazir-regular { font-weight: 400; }
+.font-vazir-medium { font-weight: 500; }
+.font-vazir-semibold { font-weight: 600; }
+.font-vazir-bold { font-weight: 700; }
+.font-vazir-extrabold { font-weight: 800; }
+.font-vazir-black { font-weight: 900; }
+
+/* Custom print styles for PRD Generator */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+
+  html, body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide all UI navigation, controls, headers, footers, buttons, and badges in print mode */
+  header, 
+  footer, 
+  nav, 
+  button, 
+  input, 
+  select, 
+  textarea, 
+  .no-print,
+  [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Reset outer container margins and shadows */
+  main, .max-w-7xl, .max-w-4xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure the PRD printable document takes full width without borders or dark mode styles */
+  #prd-printable-document {
+    border: none !important;
+    border-top: 4px solid #2563eb !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Avoid bad page breaks inside sections and table rows */
+  .space-y-8 > * + *,
+  .space-y-6 > * + *,
+  .space-y-3 > * + * {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  tr, table, blockquote, .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+}
+

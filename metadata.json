@@ -1,0 +1,6 @@
+{
+  "name": "نیازکاو (NiazKav)",
+  "description": "سامانه هوشمند بومی کشف، استخراج، مستندسازی و مدیریت نیازمندی‌های کسب‌وکار ویژه تحلیلگران ارشد در ایران",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
