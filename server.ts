@@ -1,11 +1,6 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
@@ -19,14 +14,7 @@ async function startServer() {
     if (!apiKey) {
       return null;
     }
-    return new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build'
-        }
-      }
-    });
+    return new GoogleGenAI({ apiKey });
   }
 
   // 1. API Endpoint: AI Question Suggestion based on Iranian Role & Context
@@ -83,7 +71,7 @@ async function startServer() {
       ]`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -191,7 +179,7 @@ async function startServer() {
       پاسخ را دقیقاً به صورت آرایه‌ای از اشیاء JSON برگردان.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -280,7 +268,7 @@ async function startServer() {
       - fullText: ترکیب استاندارد کامل داستان کاربر به فارسی`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -356,7 +344,7 @@ async function startServer() {
       پاسخ را در قالب یک متن تحلیل جامع فارسی کوتاه (۲ الی ۳ پاراگراف) برگردان.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt
       });
 
@@ -407,7 +395,7 @@ async function startServer() {
       پاسخ را به زبان فارسی، بسیار شکیل، ساختاریافته و با تیترهای مشخص بدون علامت‌های عجیب برگردان.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt
       });
 
@@ -428,8 +416,189 @@ async function startServer() {
     }
   });
 
+  // 6. API Endpoint: Automatic Bizagi BPMN 2.0 Diagram Generation
+  app.post('/api/ai/generate-bpmn', async (req, res) => {
+    try {
+      const { processDescription, templatePreset, requirements } = req.body;
+      const ai = getGeminiClient();
+
+      if (!ai) {
+        // Fallback intelligent diagram generator based on preset or description
+        let title = 'فرآیند سفارشی Bizagi Modeler';
+        let pools = [
+          {
+            id: 'p-1',
+            name: 'سازمان اصلی',
+            lanes: [
+              { id: 'l-1', name: 'واحد مربوطه / درخواست‌کننده', role: 'کاربر', height: 160 },
+              { id: 'l-2', name: 'سیستم هوشمند NiazKav', role: 'سیستم', height: 180 },
+              { id: 'l-3', name: 'مدیریت / تاییدکننده', role: 'مدیر', height: 160 }
+            ]
+          }
+        ];
+
+        let nodes = [
+          { id: 'n-1', type: 'startEvent' as const, name: 'شروع فرآیند', poolId: 'p-1', laneId: 'l-1', x: 60, y: 60 },
+          { id: 'n-2', type: 'userTask' as const, name: 'ثبت اطلاعات و درخواست اولیه', poolId: 'p-1', laneId: 'l-1', x: 180, y: 45, performer: 'کاربر', slaHours: 1 },
+          { id: 'n-3', type: 'serviceTask' as const, name: 'اعتبارسنجی خودکار و پردازش داده‌ها', poolId: 'p-1', laneId: 'l-2', x: 340, y: 220, slaHours: 0.1 },
+          { id: 'n-4', type: 'exclusiveGateway' as const, name: 'تایید شرایط؟', poolId: 'p-1', laneId: 'l-2', x: 500, y: 230 },
+          { id: 'n-5', type: 'userTask' as const, name: 'بررسی و تایید مدیریت', poolId: 'p-1', laneId: 'l-3', x: 640, y: 410, performer: 'مدیر', slaHours: 4 },
+          { id: 'n-6', type: 'endEvent' as const, name: 'پایان موفقیت‌آمیز فرآیند', poolId: 'p-1', laneId: 'l-1', x: 800, y: 60 }
+        ];
+
+        let flows = [
+          { id: 'f-1', sourceRef: 'n-1', targetRef: 'n-2', type: 'sequence' as const },
+          { id: 'f-2', sourceRef: 'n-2', targetRef: 'n-3', type: 'sequence' as const },
+          { id: 'f-3', sourceRef: 'n-3', targetRef: 'n-4', type: 'sequence' as const },
+          { id: 'f-4', sourceRef: 'n-4', targetRef: 'n-5', name: 'بله (تایید)', type: 'sequence' as const },
+          { id: 'f-5', sourceRef: 'n-5', targetRef: 'n-6', name: 'تایید نهایی', type: 'sequence' as const }
+        ];
+
+        if (templatePreset === 'warehouse') {
+          title = 'فرآیند خروج کالا و تحویل انبار (Warehouse Issue)';
+          nodes[1].name = 'ثبت درخواست حواله خروج کالا';
+          nodes[2].name = 'کنترل خودکار موجودی انبار و تخصیص کد ردیابی';
+          nodes[4].name = 'تحویل فیزیکی کالا و امضای حواله انباردار';
+        } else if (templatePreset === 'procurement') {
+          title = 'فرآیند خرید و ثبت فاکتور پرداختی (Procurement & Invoice)';
+          nodes[1].name = 'ثبت درخواست خرید کالا/خدمات';
+          nodes[2].name = 'استعلام قیمت از تامین‌کنندگان و ثبت پیش‌فاکتور';
+          nodes[4].name = 'تایید فاکتور توسط مدیر مالی و صدور دستور پرداخت';
+        }
+
+        const diagram = {
+          id: `bpmn-gen-${Date.now()}`,
+          title: processDescription ? `فرآیند: ${processDescription.slice(0, 40)}...` : title,
+          code: `BPMN-AI-${Math.floor(100 + Math.random() * 900)}`,
+          description: processDescription || 'دیاگرام استاندارد تولیده شده بر اساس اصو ل مهندسی فرآیند Bizagi Modeler.',
+          version: '1.0',
+          createdAt: new Date().toLocaleDateString('fa-IR'),
+          updatedAt: new Date().toLocaleDateString('fa-IR'),
+          author: 'تولیدکننده هوشمند Bizagi (NiazKav)',
+          pools,
+          nodes,
+          flows
+        };
+
+        return res.json({ success: true, diagram, fallbackUsed: true });
+      }
+
+      const prompt = `شما یک معمار ارشد فرآیند و متخصص Bizagi Modeler هستید. بر اساس مشخصات زیر، یک دیاگرام کامل استاندارد BPMN 2.0 مطابق با اصول مدلسازی Bizagi با ساختار Pools, Lanes, Nodes و Flows به زبان فارسی تولید کن.
+
+      توضیحات فرآیند/سناریو: ${processDescription || templatePreset || 'فرآیند استاندارد سازمانی'}
+      نیازمندی‌های مرتبط: ${JSON.stringify(requirements || []).slice(0, 1000)}
+
+      ساختار عناصر مجاز در nodes:
+      - type: یکی از مقادیر ("startEvent", "userTask", "serviceTask", "businessRuleTask", "sendTask", "receiveTask", "exclusiveGateway", "parallelGateway", "endEvent", "endEventMessage")
+      - name: عنوان شفاف به فارسی
+      - poolId, laneId: شناسه استخر و شناسه لاین مربوطه
+      - x, y: مختصات عددی تقریبی برای رسم (x از 60 شروع شود با فواصل 160px، y بر اساس لاین)
+      - performer: نقش مجری
+      - slaHours: زمان استاندارد به ساعت
+
+      پاسخ را دقیقاً در قالب فرمت JSON زیر برگردان:
+      {
+        "title": "عنوان کامل و استاندارد فرآیند به فارسی",
+        "code": "کد اختصاصی فرآیند مانند BPMN-PRC-01",
+        "description": "توضیحات کامل فرآیند و اهداف کسب‌وکار",
+        "pools": [
+          {
+            "id": "p-1",
+            "name": "نام استخر سازمانی (Pool)",
+            "lanes": [
+              { "id": "l-1", "name": "عنوان شناور/لاین به همراه نقش", "role": "نقش مربوطه", "height": 160 }
+            ]
+          }
+        ],
+        "nodes": [
+          {
+            "id": "n-1",
+            "type": "startEvent",
+            "name": "عنوان رویداد شروع",
+            "poolId": "p-1",
+            "laneId": "l-1",
+            "x": 60,
+            "y": 60,
+            "documentation": "شرح کوتاه"
+          }
+        ],
+        "flows": [
+          {
+            "id": "f-1",
+            "sourceRef": "n-1",
+            "targetRef": "n-2",
+            "name": "برچسب جریان در صورت لزوم",
+            "type": "sequence"
+          }
+        ]
+      }`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json'
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+      const diagram = {
+        id: `bpmn-gen-${Date.now()}`,
+        version: '1.0',
+        createdAt: new Date().toLocaleDateString('fa-IR'),
+        updatedAt: new Date().toLocaleDateString('fa-IR'),
+        author: 'تولیدکننده هوشمند Bizagi (NiazKav)',
+        ...parsed
+      };
+
+      res.json({ success: true, diagram });
+    } catch (err: any) {
+      console.error('Error in generate-bpmn:', err);
+      const { processDescription } = req.body;
+      const fallbackDiagram = {
+        id: `bpmn-gen-${Date.now()}`,
+        title: processDescription ? `فرآیند: ${processDescription.slice(0, 35)}...` : 'فرآیند سفارشی Bizagi Modeler',
+        code: `BPMN-AI-${Math.floor(100 + Math.random() * 900)}`,
+        description: processDescription || 'دیاگرام استاندارد تولیده شده بر اساس اصول مهندسی فرآیند Bizagi Modeler.',
+        version: '1.0',
+        createdAt: new Date().toLocaleDateString('fa-IR'),
+        updatedAt: new Date().toLocaleDateString('fa-IR'),
+        author: 'تولیدکننده هوشمند Bizagi (NiazKav)',
+        pools: [
+          {
+            id: 'p-1',
+            name: 'سازمان اصلی',
+            lanes: [
+              { id: 'l-1', name: 'واحد درخواست‌کننده', role: 'کاربر', height: 160 },
+              { id: 'l-2', name: 'سامانه هوشمند', role: 'سیستم', height: 180 },
+              { id: 'l-3', name: 'مدیریت تاییدکننده', role: 'مدیر', height: 160 }
+            ]
+          }
+        ],
+        nodes: [
+          { id: 'n-1', type: 'startEvent' as const, name: 'شروع فرآیند', poolId: 'p-1', laneId: 'l-1', x: 60, y: 60 },
+          { id: 'n-2', type: 'userTask' as const, name: 'ثبت اطلاعات اولیه', poolId: 'p-1', laneId: 'l-1', x: 180, y: 45, performer: 'کاربر', slaHours: 1 },
+          { id: 'n-3', type: 'serviceTask' as const, name: 'اعتبارسنجی سیستم و پردازش', poolId: 'p-1', laneId: 'l-2', x: 340, y: 220, slaHours: 0.1 },
+          { id: 'n-4', type: 'exclusiveGateway' as const, name: 'تایید شرایط؟', poolId: 'p-1', laneId: 'l-2', x: 500, y: 230 },
+          { id: 'n-5', type: 'userTask' as const, name: 'بررسی و تایید مدیریت', poolId: 'p-1', laneId: 'l-3', x: 640, y: 410, performer: 'مدیر', slaHours: 4 },
+          { id: 'n-6', type: 'endEvent' as const, name: 'پایان موفقیت‌آمیز فرآیند', poolId: 'p-1', laneId: 'l-1', x: 800, y: 60 }
+        ],
+        flows: [
+          { id: 'f-1', sourceRef: 'n-1', targetRef: 'n-2', type: 'sequence' as const },
+          { id: 'f-2', sourceRef: 'n-2', targetRef: 'n-3', type: 'sequence' as const },
+          { id: 'f-3', sourceRef: 'n-3', targetRef: 'n-4', type: 'sequence' as const },
+          { id: 'f-4', sourceRef: 'n-4', targetRef: 'n-5', name: 'بله', type: 'sequence' as const },
+          { id: 'f-5', sourceRef: 'n-5', targetRef: 'n-6', name: 'تایید', type: 'sequence' as const }
+        ]
+      };
+      res.json({ success: true, diagram: fallbackDiagram, warning: err.message });
+    }
+  });
+
   // Vite Integration & Static Serving
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'

@@ -98,11 +98,14 @@ export interface ConflictItem {
 export interface RegulationItem {
   id: string;
   title: string;
-  category: 'Tax' | 'Banking' | 'Cybersecurity' | 'Commerce' | 'BPMS';
+  category: 'Tax' | 'ECommerce' | 'Guild' | 'Banking' | 'Labor' | 'IP' | 'Cybersecurity' | 'BPMS';
   referenceCode: string;
   summary: string;
   keyDirectives: string[];
   impactOnIT: string;
+  penalties?: string;
+  sourceUrl?: string;
+  complianceChecklist?: string[];
 }
 
 export interface Project {
@@ -124,3 +127,218 @@ export interface UserStory {
   acceptanceCriteria: string[];
   fullText: string;
 }
+
+// Bizagi Modeler & BPMN 2.0 Process Architecture Types
+export type BpmnElementType = 
+  | 'startEvent'
+  | 'startEventMessage'
+  | 'startEventTimer'
+  | 'endEvent'
+  | 'endEventMessage'
+  | 'endEventTerminate'
+  | 'userTask'
+  | 'serviceTask'
+  | 'scriptTask'
+  | 'businessRuleTask'
+  | 'sendTask'
+  | 'receiveTask'
+  | 'exclusiveGateway' // XOR
+  | 'parallelGateway'  // AND
+  | 'inclusiveGateway' // OR
+  | 'subProcess'
+  | 'dataObject'
+  | 'dataStore'
+  | 'textAnnotation';
+
+export interface BpmnLane {
+  id: string;
+  name: string;
+  role?: string;
+  height?: number;
+}
+
+export interface BpmnPool {
+  id: string;
+  name: string;
+  lanes: BpmnLane[];
+}
+
+export interface BpmnNode {
+  id: string;
+  type: BpmnElementType;
+  name: string;
+  poolId: string;
+  laneId: string;
+  x: number;
+  y: number;
+  documentation?: string;
+  performer?: string;
+  slaHours?: number;
+  dataInput?: string;
+  dataOutput?: string;
+  conditionText?: string;
+}
+
+export interface BpmnFlow {
+  id: string;
+  sourceRef: string;
+  targetRef: string;
+  name?: string;
+  type?: 'sequence' | 'message' | 'association';
+  conditionExpression?: string;
+}
+
+export interface BpmnDiagram {
+  id: string;
+  title: string;
+  code: string;
+  description: string;
+  pools: BpmnPool[];
+  nodes: BpmnNode[];
+  flows: BpmnFlow[];
+  createdAt: string;
+  updatedAt: string;
+  author: string;
+  version: string;
+}
+
+export interface ProcessArchRuleCheck {
+  id: string;
+  ruleTitle: string;
+  severity: 'Error' | 'Warning' | 'Info';
+  passed: boolean;
+  message: string;
+  recommendation: string;
+}
+
+// Business Checkup & Strategic Diagnosis Types (پیش از طراحی کانواس)
+export type InfoStatus = 'F' | 'A' | 'U'; // Fact (واقعیت), Assumption (فرض), Unknown (مجهول)
+
+export interface CheckupInitialProblem {
+  perceivedProblem: string;
+  startDate: string;
+  evidence: string;
+  affectedSections: string;
+  pastActions: string;
+  pastResults: string;
+  whySolveNow: string;
+  ifNotSolved: string;
+  expectedOutcome: string;
+  problemStatementSentence: string;
+}
+
+export interface CheckupDesiredStateItem {
+  metric: string; // فروش, حاشیه سود, جریان نقدی, تعداد مشتری, خرید مجدد, زمان تحویل, وابستگی به مدیر, ظرفیت عملیاتی
+  currentValue: string;
+  desiredValue: string;
+  deadline: string;
+}
+
+export interface CheckupFunnelStage {
+  stage: string; // دیده شدن, سرنخ, جلسه/تماس, پیشنهاد, خرید, خرید مجدد, معرفی
+  currentCountOrRate: string;
+  issue: string;
+  probableCause: string;
+  requiredData: string;
+}
+
+export interface CheckupEconomicMetric {
+  metricName: string;
+  currentValue: string;
+  issueOrAmbiguity: string;
+  actionRequired: string;
+}
+
+export interface CheckupRootCauseChain {
+  id: string;
+  symptom: string; // نشانه مشاهده شده
+  evidence: string; // شواهد
+  why1: string;
+  why2: string;
+  why3: string;
+  systemOrDecision: string;
+  bmcSection: string;
+  probableRootCause: string;
+}
+
+export interface CheckupHealthScoreItem {
+  id: string;
+  title: string;
+  score: number; // 1 to 5
+  notes?: string;
+}
+
+export interface CheckupHeatmapArea {
+  areaKey: string;
+  title: string;
+  status: 'Green' | 'Yellow' | 'Red' | 'Gray';
+  keyFinding: string;
+}
+
+export interface CheckupPrioritizedIssue {
+  id: string;
+  issueTitle: string;
+  severity: number; // 1 to 5
+  urgency: number; // 1 to 5
+  customerImpact: number; // 1 to 5
+  economicImpact: number; // 1 to 5
+  fixability: number; // 1 to 5
+  totalScore: number;
+}
+
+export interface CheckupHypothesis {
+  id: string;
+  hypothesisText: string;
+  currentEvidence: string;
+  requiredData: string;
+  validationMethod: string;
+  owner: string;
+  deadline: string;
+}
+
+export type StrategicDecisionPath = 
+  | 'OptimizeCurrent'  // بهینه‌سازی مدل فعلی
+  | 'AmendSections'    // اصلاح چند بخش از مدل
+  | 'MajorRedesign'    // بازطراحی اساسی بیزینس‌مدل
+  | 'DualModel'        // ساخت مدل جدید در کنار مدل فعلی
+  | 'DownsizeExit';    // کوچک‌سازی یا خروج
+
+export interface StrategicCheckupData {
+  id: string;
+  projectId: string;
+  updatedAt: string;
+  author: string;
+  initialProblem: CheckupInitialProblem;
+  desiredStates: CheckupDesiredStateItem[];
+  currentModelOneLiner: string;
+  funnelStages: CheckupFunnelStage[];
+  economicMetrics: CheckupEconomicMetric[];
+  rootCauses: CheckupRootCauseChain[];
+  healthScores: CheckupHealthScoreItem[];
+  heatmap: CheckupHeatmapArea[];
+  prioritizedIssues: CheckupPrioritizedIssue[];
+  hypotheses: CheckupHypothesis[];
+  strategicDecision: {
+    selectedPath: StrategicDecisionPath;
+    justification: string;
+    focusQuestionAnswer: string;
+  };
+  onePageCanvas: {
+    announcedProblem: string;
+    desiredOutcome: string;
+    currentModelOneLiner: string;
+    topStrengths: string[];
+    topSymptomIssues: string[];
+    probableRootCauses: string[];
+    unprovenAssumptions: string[];
+    missingData: string[];
+    dangerousDependencies: string[];
+    topOpportunities: string[];
+    topThreats: string[];
+    top3Priorities: string[];
+    proposedDecision: string;
+    bmcSectionsToRedesign: string[];
+    actionsBeforeNextSession: string[];
+  };
+}
+

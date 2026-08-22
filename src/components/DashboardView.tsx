@@ -12,7 +12,10 @@ import {
   ArrowLeft,
   Sparkles,
   Building,
-  Target
+  Target,
+  Activity,
+  FolderEdit,
+  Trash2
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -21,6 +24,8 @@ interface DashboardViewProps {
   stakeholders: Stakeholder[];
   interviews: InterviewSession[];
   onNavigate: (tab: string) => void;
+  onEditProject?: () => void;
+  onDeleteProject?: (projectId: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -28,7 +33,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   requirements,
   stakeholders,
   interviews,
-  onNavigate
+  onNavigate,
+  onEditProject,
+  onDeleteProject
 }) => {
   const functionalCount = requirements.filter(r => r.type === 'Functional').length;
   const nonFunctionalCount = requirements.filter(r => r.type === 'NonFunctional').length;
@@ -73,10 +80,41 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>بازه زمانی: <strong className="text-slate-800 dark:text-slate-200">{project.startDateJalali} الی {project.targetCompletionJalali}</strong></span>
               </div>
+
+              {onEditProject && (
+                <button
+                  onClick={onEditProject}
+                  className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-bold text-xs mr-2 cursor-pointer"
+                >
+                  <FolderEdit className="w-3.5 h-3.5" />
+                  <span>ویرایش شناسنامه پروژه</span>
+                </button>
+              )}
+
+              {onDeleteProject && (
+                <button
+                  onClick={() => {
+                    if (window.confirm(`آیا از حذف کامل پروژه «${project.name}» اطمینان دارید؟`)) {
+                      onDeleteProject(project.id);
+                    }
+                  }}
+                  className="flex items-center gap-1 text-red-500 hover:text-red-600 font-medium text-xs mr-2 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>حذف پروژه</span>
+                </button>
+              )}
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
+            <button
+              onClick={() => onNavigate('checkup')}
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-indigo-500/20 transition cursor-pointer"
+            >
+              <Activity className="w-4 h-4" />
+              <span>چکاپ و عارضه‌یابی استراتژیک</span>
+            </button>
             <button
               onClick={() => onNavigate('interview')}
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer"
